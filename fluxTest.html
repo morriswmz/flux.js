@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+</head>
+<body>
+	<canvas width="400" height="400" id='canvas'></canvas>
+	<script type="text/javascript" src="src/flux.min.js"></script>
+	<script type="text/javascript">
+var canvas = document.getElementById('canvas'),
+	context2D = canvas.getContext('2d'),
+	tick = 0;
+
+var pm = new flux.ParticleManager(1.0/30.0),
+	pEmitter = new flux.emitters.PointEmitter({
+		centerX : 200,
+		centerY : 200,
+		velocityBase : 40,
+		velocityVariance : 20,
+		angleStart : Math.PI/12,
+		angleStop : -Math.PI/12
+	}),
+	cEmitter = new flux.emitters.CircularEmitter({
+		centerX : 200,
+		centerY : 200,
+		velocityBase : 40,
+		velocityVariance : 20,
+		radius : 20
+	}),
+	pathEmitter = new flux.emitters.PathEmitter({
+		velocityBase : 8,
+		velocityVariance : 4,
+		path : [
+			80, 120,
+			100, 100,
+			300, 100,
+			100, 300,
+			300, 300,
+			320, 280
+		]
+	}),
+	rpField = new flux.fields.RepulsionField(0, 0, 0, 1000),
+	step = 0;
+
+pm.fields = [
+			 new flux.fields.RandomWalkerField()
+			];
+pm.boundary = new flux.geom.Rectangle(0, 0, 400, 400);
+
+context2D.fillStyle = '0x000000';
+context2D.fillRect(0,0,400,400);
+
+canvas.addEventListener('mousemove', function (evt) {
+	var rect = canvas.getBoundingClientRect(),
+		mx = evt.clientX - rect.left,
+		my = evt.clientY - rect.top;
+	rpField.centerX = mx;
+	rpField.centerY = my;
+});
+
+var imageData = context2D.getImageData(0, 0, 400, 400);
+function render() {
+	tick++;
+	if (tick == 2) {
+		tick = 0;
+	} else {
+		step++;
+		var idx, curParticle, cx, cy,
+			blendRatio;
+
+		if (step == 15) {
+			step = 0;
+			//cEmitter.setCircle(Math.random()*200+100, Math.random()*200+100, Math.random()*30 + 20);
+			//pm.generate(cEmitter, 100, 4);
+		}
+		var mousePos = 
+		rpField.setCenter
+		//pm.generate(pEmitter, 20, 4);
+		pm.generate(pathEmitter, 20, 4);
+		pm.update();
+		// for (var xx = 0;xx < 400*400*4;xx+=4) {
+		// 	imageData.data[xx] = 0;
+		// 	imageData.data[xx+1] = 0;
+		// 	imageData.data[xx+2] = 0;
+		// 	imageData.data[xx+3] = 255;
+		// } 
+		context2D.fillStyle = '#000000';
+		context2D.fillRect(0,0,400,400);
+		curParticle = pm.activePool.next;
+		while (curParticle) {
+			cx = curParticle.x;
+			cy = curParticle.y;
+			if (cx < 400 && cx > 0 && cy < 400 && cy > 0) {
+				// idx = (400 * Math.floor(cy) + Math.floor(cx)) * 4;
+				blendRatio = 1.0 - curParticle.age / curParticle.lifespan;
+				if (blendRatio < 0) blendRatio = 0;
+				// imageData.data[idx] = 255 * blendRatio;
+				// imageData.data[idx+1] = 0;
+				// imageData.data[idx+2] = 0;
+				// imageData.data[idx+3] = 255;
+				context2D.fillStyle = 'rgb(0,' + Math.round(blendRatio * 255) + ',' + Math.round(blendRatio * 255) +')' ;
+				context2D.fillRect(cx, cy, 2, 2);
+			}
+			curParticle = curParticle.next;
+		}
+		//context2D.putImageData(imageData,0,0);
+	}
+	webkitRequestAnimationFrame(render);
+}
+render();
+	</script>
+</body>
+</html>
